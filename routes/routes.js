@@ -16,7 +16,7 @@ router.use('/api/users', usersRouter);
 router.use('/api/auth', authRouter);
 router.use('/api/startup', startupRouter);
 router.use('/api/remoforce', remoforceRouter);
-router.use('/api/job', jobRouter);
+router.use('/api/job', jobRouter);  
 
 
 

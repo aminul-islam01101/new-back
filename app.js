@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
@@ -6,7 +7,7 @@ const passport = require('passport');
 const logger = require('./middleware/logger');
 const routes = require('./routes/routes');
 
-require('dotenv').config();
+
 
 
 // middleware

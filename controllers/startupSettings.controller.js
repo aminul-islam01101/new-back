@@ -3,6 +3,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable prefer-template */
 const fs = require('fs');
+require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 

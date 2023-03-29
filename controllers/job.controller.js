@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const Category = require('../models/category.schema');
 const backBlazeSingle = require('../configs/backBlazeSingle');
