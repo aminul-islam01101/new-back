@@ -1,4 +1,3 @@
-require('dotenv').config();
 const mongoose = require('mongoose');
 const Category = require('../models/category.schema');
 const backBlazeSingle = require('../configs/backBlazeSingle');
@@ -223,65 +222,148 @@ const createJob = async (req, res) => {
         res.status(500).send(error.message);
     }
 };
-// const contractsJob = async (req, res) => {
-//     const { email, categoryName } = req.body;
-//     const { id } = req.params;
-//     const obj = JSON.parse(req.body.obj);
-  
-   
-    
-//     if (req.files.contractsPaper.length) {
-//         const url = await backBlazeSingle(req.files.contractsPaper[0]);
-//         console.log(url);
+// post a contracts Job
+const contractsJob = async (req, res) => {
+    const obj = JSON.parse(req.body.obj);
+    const { email, categoryName } = obj;
+    console.log('categoryName---- ', categoryName);
 
-//         obj.contractsPaper = url;
-//     }
-//     console.log(obj);
-//     // res.send('route ok')
-//     try {
-//         const job = await JobDataModel.findOne({ email });
-//         // if (!job) {
-//         //     return res.status(404).send({
-//         //         success: false,
-//         //         message: 'Job not found',
-//         //     });
-//         // }
+    if (req.files.contractsPaper.length) {
+        const url = await backBlazeSingle(req.files.contractsPaper[0]);
+        console.log(url);
 
-//         await JobDataModel.updateOne(
-//             {  email },
-//             { ...req.body },
-//             { upsert: true }
-//         );
+        obj.contractsPaper = url;
+    }
+    console.log(obj);
+    // res.send('route ok')
+    try {
+        const newJob = new JobDataModel(obj);
+        await newJob
+            .save()
+            .then(async () => {
+                const jobPost = await UserJobsModel.findOne({ email });
 
+                if (jobPost) {
+                    jobPost.jobs.push({ jobId: newJob._id, ...obj });
+                    await jobPost.save();
+                } else {
+                    const newJobPost = new UserJobsModel({
+                        email,
+                        jobs: [{ jobId: newJob._id, ...obj }],
+                    });
+                    await newJobPost.save();
+                }
 
-//         const jobPost = await UserJobsModel.findOne({ email });
-//         if (jobPost) {
-//             const jobIndex = jobPost.jobs.findIndex((j) => j.jobId === id);
-//             if (jobIndex >= 0) {
-//                 jobPost.jobs[jobIndex] = { jobId: id, ...req.body };
-//                 await jobPost.save();
-//             } else {
-//                 jobPost.jobs.push({ jobId: id, ...req.body });
-//                 await jobPost.save();
-//             }
-//         } else {
-//             const newJobPost = new UserJobsModel({
-//                 email,
-//                 jobs: [{ jobId: id, ...req.body }],
-//             });
-//             await newJobPost.save();
-//         }
+                const categoryJobPost = { jobId: newJob._id, ...obj };
+                // const jobPost = { jobId: newJob._id, jobPosterEmail: email };
+                console.log('categoryJobPost----', categoryJobPost);
 
-//         const categoryJobPost = { jobId: id, ...req.body };
+                const response = await Category.updateOne(
+                    { categoryName },
+                    { $push: { jobs: categoryJobPost } }
+                );
 
-//         const response = await Category.updateOne(
-//             { categoryName },
-//             { $push: { jobs: categoryJobPost } }
-//         );
-//         res.send(response);
-//     } catch (error) {
-//         res.status(500).send(error.message);
-//     }
+                res.send(newJob);
+            })
+            .catch((error) => {
+                res.send({
+                    success: false,
+                    message: 'User is not created',
+                    error,
+                });
+            });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
+// edit contracts job
+const editContractsJob = async (req, res) => {
+    const { id } = req.params;
+
+    const obj = JSON.parse(req.body.obj);
+    const { email, categoryName } = obj;
+    console.log('categoryName---- ', categoryName);
+
+    if (req.files?.contractsPaper?.length) {
+        const url = await backBlazeSingle(req.files.contractsPaper[0]);
+        console.log(url);
+
+        obj.contractsPaper = url;
+    }
+    console.log(obj);
+
+    try {
+        const updatedJob = await JobDataModel.findByIdAndUpdate(id, obj, {
+            new: true, // Return the updated document
+        });
+        const updatedJobPost = await UserJobsModel.findOneAndUpdate(
+            { email, 'jobs.jobId': id },
+            { $set: { 'jobs.$': obj } }
+        );
+        const updatedCategory = await Category.findOneAndUpdate(
+            { categoryName, 'jobs.jobId': id },
+            { $set: { 'jobs.$': obj } }
+        );
+        console.log('------------', updatedJob);
+
+        res.send(updatedJob);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update job post' });
+    }
+
+    // res.send('route ok')
+    // try {
+    //     const newJob = new JobDataModel(obj);
+    //     await newJob
+    //         .save()
+    //         .then(async () => {
+
+    //             const jobPost = await UserJobsModel.findOne({ email });
+
+    //             if (jobPost) {
+    //                 jobPost.jobs.push({ jobId: newJob._id, ...obj });
+    //                 await jobPost.save();
+    //             } else {
+    //                 const newJobPost = new UserJobsModel({
+    //                     email,
+    //                     jobs: [{ jobId: newJob._id, ...obj }],
+    //                 });
+    //                 await newJobPost.save();
+    //             }
+
+    //             const categoryJobPost = { jobId: newJob._id, ...obj };
+    //             // const jobPost = { jobId: newJob._id, jobPosterEmail: email };
+    //             console.log("categoryJobPost----", categoryJobPost);
+
+    //             const response = await Category.updateOne(
+    //                 { categoryName },
+    //                 { $push: { jobs: categoryJobPost } }
+    //             );
+
+    //             res.send(newJob);
+
+    //         })
+    //         .catch((error) => {
+    //             res.send({
+    //                 success: false,
+    //                 message: 'User is not created',
+    //                 error,
+    //             });
+    //         });
+    // } catch (error) {
+    //     res.status(500).send(error.message);
+    // }
+};
+
+// // Get Contracts job
+
+// const getContractsJobs = async (req, res) => {
+//     const { email } = req.params;
+
+//     const user = await UserJobsModel.findOne({ email });
+
+//     res.send(user?.jobs);
 // };
 // get all jobs of a specific user
 const getUsersJobs = async (req, res) => {
@@ -483,16 +565,12 @@ const acceptApplication = async (req, res) => {
 const getStatus = async (req, res) => {
     const jobId = req.query.id; // get the id parameter from the request
     const { email } = req.query; // get the email parameter from the request
-    
-    
 
     try {
         // Find the job in the database by its id and email
         const job = await JobDataModel.findOne({
             _id: jobId,
         }).exec();
-      
-        
 
         if (!job) {
             // If the job is not found, return an error response
@@ -501,15 +579,13 @@ const getStatus = async (req, res) => {
         if (job.applicationRequest.length === 0) {
             return res.send({ status: 'notApplied' });
         }
-       
 
         // Get the application request for the current user (based on their email)
         const applicationRequest = job?.applicationRequest?.find(
             (request) => request.applicantsEmail === email
         );
-        
-        console.log(applicationRequest);
 
+        console.log(applicationRequest);
 
         if (!applicationRequest) {
             // If there is no application request for the current user, return an error response
@@ -528,7 +604,7 @@ const getStatus = async (req, res) => {
 module.exports = {
     getCategories,
     createJob,
-    // contractsJob,
+    contractsJob,
     getUsersJobs,
     deleteUsersJob,
     getAllJobs,
@@ -536,5 +612,7 @@ module.exports = {
     acceptApplication,
     rejectApplication,
     getStatus,
+    // getContractsJobs,
+    editContractsJob,
 };
 // module.exports = { getCategories, publicJob, privateJob, internship, contracts };

@@ -1,5 +1,5 @@
 const express = require('express');
-const { updateRemoProfileSettings, updateRemoSkillsSettings, updateRemoEducationSettings, updateRemoExperienceSettings, getRemoforceProfile, updateRemoAccountSettings } = require('../controllers/remoforceSettings.controller');
+const { updateRemoProfileSettings, updateRemoSkillsSettings, updateRemoEducationSettings, updateRemoExperienceSettings, getRemoforceProfile, updateRemoAccountSettings, updateRemoProjectsSettings } = require('../controllers/remoforceSettings.controller');
 const {
     updateGeneralSettingsPersonal,
     updateGeneralSettingsVerification,
@@ -59,6 +59,11 @@ router.put(
     '/remoforce-settings-experience',
     
     updateRemoExperienceSettings
+);
+router.put(
+    '/remoforce-settings-projects',
+    
+    updateRemoProjectsSettings
 );
 router.put(
     '/remoforce-settings-account',

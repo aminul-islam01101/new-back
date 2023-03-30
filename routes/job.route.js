@@ -1,8 +1,17 @@
 const express = require('express');
 const {
     getCategories,
-    createJob, 
-  getUsersJobs, deleteUsersJob, getAllJobs, insertApplication,acceptApplication, rejectApplication, getStatus
+    createJob,
+    editContractsJob,
+    getContractsJobs,
+    contractsJob,
+    getUsersJobs,
+    deleteUsersJob,
+    getAllJobs,
+    insertApplication,
+    acceptApplication,
+    rejectApplication,
+    getStatus,
 } = require('../controllers/job.controller');
 // const {
 //     getCategories,
@@ -35,33 +44,36 @@ router.post('/private-job', createJob);
 router.post('/internship', createJob);
 router.post('/gigs', createJob);
 router.post('/shadowing', createJob);
-// router.put('/contracts',  upload.fields([
-//     { name: 'contractsPaper', maxCount: 1 },
-   
-// ]),
-// multerErrorHandler, contractsJob);
-
+router.post(
+    '/contracts',
+    upload.fields([{ name: 'contractsPaper', maxCount: 1 }]),
+    multerErrorHandler,
+    contractsJob
+);
+router.put(
+    '/contracts/:id',
+    upload.fields([{ name: 'contractsPaper', maxCount: 1 }]),
+    multerErrorHandler,
+    editContractsJob
+);
 
 // GET: get users job
 router.get('/categories', getCategories);
 router.get('/user-jobs/:email', getUsersJobs);
+// router.get('/contracts/:id', getContractsJobs);
 router.get('/all-jobs', getAllJobs);
 router.get('/apply-status', getStatus);
 
+// DELETE: a job from all job
+router.delete('/user-jobs/:id', deleteUsersJob);
 
+// PUT: insert application request
+router.put('/user-jobs/:id', insertApplication);
 
-
- // DELETE: a job from all job
- router.delete('/user-jobs/:id', deleteUsersJob);
-
- // PUT: insert application request
- router.put('/user-jobs/:id', insertApplication);
-
- // PUT: update application status to accept
- router.put('/accept/:id', acceptApplication);
- // PUT: update application status to rejected
- router.put('/reject/:id', rejectApplication);
-
+// PUT: update application status to accept
+router.put('/accept/:id', acceptApplication);
+// PUT: update application status to rejected
+router.put('/reject/:id', rejectApplication);
 
 // router.post('/public-job', publicJob);
 // router.post('/private-job', privateJob);
