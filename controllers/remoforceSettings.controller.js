@@ -27,12 +27,13 @@ const updateRemoProfileSettings = async (req, res) => {
 
     // console.log(homePageImages);
     // const uploadedFilesUrls = [];
+    let profileUrl=''
 
     if (req.files.remoforceProfilePhoto.length) {
-        const url = await backBlazeSingle(req.files.remoforceProfilePhoto[0]);
-        console.log(url);
+        profileUrl = await backBlazeSingle(req.files.remoforceProfilePhoto[0]);
+        
 
-        obj.remoforceProfilePhoto = url;
+        obj.remoforceProfilePhoto = profileUrl;
     }
     if (req.files.resume.length) {
         const url = await backBlazeSingle(req.files.resume[0]);
@@ -44,9 +45,11 @@ const updateRemoProfileSettings = async (req, res) => {
     // console.log(obj);
 
     // res.send('route ok')
+    // User.updateOne({ email }, user, { upsert: true });
 
     try {
         if (email) {
+            const updateUser = await User.updateOne({ email }, {profilePhoto: profileUrl}, { upsert: true });
             const response = await Remoforce.updateOne({ email }, obj, { upsert: true });
             res.status(200).send(response);
         } else {

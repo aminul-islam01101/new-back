@@ -101,6 +101,7 @@ const remoforceSchema = mongoose.Schema({
             },
         },
     ],
+    softSkills: [String],
     selectedLanguages: [
         {
             language: String,

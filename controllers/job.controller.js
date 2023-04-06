@@ -283,7 +283,6 @@ const editContractsJob = async (req, res) => {
 
     const obj = JSON.parse(req.body.obj);
     const { email, categoryName } = obj;
-    console.log('categoryName---- ', categoryName);
 
     if (req.files?.contractsPaper?.length) {
         const url = await backBlazeSingle(req.files.contractsPaper[0]);
@@ -291,15 +290,23 @@ const editContractsJob = async (req, res) => {
 
         obj.contractsPaper = url;
     }
-    console.log(obj);
 
     try {
         const updatedJob = await JobDataModel.findByIdAndUpdate(id, obj, {
             new: true, // Return the updated document
         });
+        const existing = await UserJobsModel.findOne({ email });
+        const existingJob = existing.jobs.find((job) => job.jobId === id);
+        let option = {};
+        if (req.files?.contractsPaper?.length) {
+            option = { ...obj, jobId: id };
+        } else {
+            option = { ...obj, jobId: id, contractsPaper: existingJob.contractsPaper };
+        }
+
         const updatedJobPost = await UserJobsModel.findOneAndUpdate(
             { email, 'jobs.jobId': id },
-            { $set: { 'jobs.$': obj } }
+            { $set: { 'jobs.$': option } }
         );
         const updatedCategory = await Category.findOneAndUpdate(
             { categoryName, 'jobs.jobId': id },
@@ -384,6 +391,60 @@ const getAllJobs = async (req, res) => {
     }
 };
 
+// GET category wise jobs
+const getCategoryJobs = async (req, res) => {
+    console.log(req.url);
+    const categoryData = req.url.split('/').pop();
+    const categoryName = categoryData.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+    // res.send('route ok')
+
+    try {
+        const category = await Category.findOne({ categoryName });
+        console.log(category.jobs);
+        // res.send('route ok')
+        res.status(200).json(category.jobs);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+// GET active jobs
+const getUsersActiveJobs = async (req, res) => {
+    const { email } = req.params;
+    const jobStatus = req.url
+        .split('/')
+        .find((status) => status === 'active' || status === 'closed');
+
+    try {
+        const user = await UserJobsModel.findOne({ email });
+        const activeJobs = user.jobs.filter((job) => job.jobStatus === jobStatus);
+
+        // res.send('route ok')
+        res.status(200).json(activeJobs);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+// GET active jobs
+const getUsersShadowingJobs = async (req, res) => {
+    const { email } = req.params;
+    const jobCategory = req.url.split('/').find((category) => category === 'shadowing');
+    const categoryName = jobCategory.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+    try {
+        const user = await UserJobsModel.findOne({ email });
+        const shadowingJobs = user.jobs.filter((job) => job.categoryName === categoryName);
+
+        // res.send('route ok')
+        res.status(200).json(shadowingJobs);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
 // delete a job of user
 const deleteUsersJob = async (req, res) => {
     const { id } = req.params;
@@ -398,6 +459,46 @@ const deleteUsersJob = async (req, res) => {
     const deleteJob = await JobDataModel.findByIdAndDelete(id);
 
     res.send(deleteJob);
+};
+// close a job of user
+const closeUsersJob = async (req, res) => {
+    const { id } = req.params;
+    const job = await JobDataModel.findById(id).exec();
+
+    console.log(id);
+
+    const { email, categoryName } = job;
+    console.log(email);
+
+    // { categoryName, 'jobs.jobId': id },
+    //         { $set: { 'jobs.$': obj } }
+    // res.send('route ok')
+    const userJobUpdate = await UserJobsModel.findOneAndUpdate(
+        { email, 'jobs.jobId': id },
+        { $set: { 'jobs.$.jobStatus': 'closed' } }
+    ).exec();
+    const userCategoryUpdate = await Category.findOneAndUpdate(
+        { categoryName, 'jobs.jobId': id },
+        { $set: { 'jobs.$.jobStatus': 'closed' } }
+    ).exec();
+    const updateJob = await JobDataModel.findByIdAndUpdate(id, { jobStatus: 'closed' }, {new:true});
+    console.log(updateJob);
+    
+    res.send(updateJob);
+
+    //     // const user = await UserJobsModel.findOne({ email });
+    //     const result = await UserJobsModel.findOneAndUpdate(
+    //         { email, 'jobs.jobId': id },
+    //         { $set: { 'jobs.$': option } }
+    //     );
+
+    //     const resultCat = await Category.findOneAndUpdate(
+    //         { categoryName, 'jobs.jobId': id },
+    //         { $set: { 'jobs.$': option } }
+    //     );
+    //     const updateJob = await JobDataModel.findByIdAndUpdate(id,{jobStatus: 'closed'});
+
+    //     res.send(updateJob);
 };
 
 // insert an application in UserJobsModel and JobDataModel
@@ -600,6 +701,29 @@ const getStatus = async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
+const applicationRequests = async (req, res) => {
+    const { id } = req.params;
+    
+
+console.log(id);
+// res.send('route ok')
+
+
+    try {
+        // Find the job post by ID
+        const job = await JobDataModel.findById(id);
+        if (!job) {
+            return res.status(404).send('Job post not found');
+        }
+
+        // Update the application request's status to "accepted"
+     
+        res.send(job.applicationRequest);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+};
 
 module.exports = {
     getCategories,
@@ -612,7 +736,13 @@ module.exports = {
     acceptApplication,
     rejectApplication,
     getStatus,
+    getCategoryJobs,
+    getUsersActiveJobs,
+    getUsersShadowingJobs,
+    closeUsersJob,
+
     // getContractsJobs,
     editContractsJob,
+    applicationRequests,
 };
 // module.exports = { getCategories, publicJob, privateJob, internship, contracts };
