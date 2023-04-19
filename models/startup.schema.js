@@ -2,11 +2,63 @@
 const mongoose = require('mongoose');
 const allValidator = require('validator');
 
+const talentsDataSchema = new mongoose.Schema({
+    fullName: String,
+    email: String,
+    scorePercentage: Number,
+    skillLevel: String,
+    country: String,
+});
+
+const individualHistorySchema = new mongoose.Schema({
+    searchQuery: {
+        details: {
+            description: String,
+            title: String,
+        },
+        selectedLanguages: [String],
+        locationPreference: [String],
+        softSkills: [String],
+        selectedSkills: [
+            {
+                skillName: String,
+                level: String,
+            },
+        ],
+        requiredTalents: Number,
+    },
+    requiredTalentsInHistory: [talentsDataSchema],
+});
+const talentHistorySchema = new mongoose.Schema({
+    transactionId: String,
+    searchHistory: [individualHistorySchema],
+});
+
+const talentRequestHistorySchema = new mongoose.Schema({
+    tierFree: {
+        type: [talentHistorySchema],
+        default: [],
+    },
+    tier10: {
+        type: [talentHistorySchema],
+        default: [],
+    },
+    tier15: {
+        type: [talentHistorySchema],
+        default: [],
+    },
+});
+
 const startupUserSchema = new mongoose.Schema({
     // Personal Info--------------------------------
+    talentRequestHistory: {
+        type: talentRequestHistorySchema,
+        default: {},
+    },
+
     fullName: {
         type: String,
-        required: [true, 'FullName is required'],
+        // required: [true, 'FullName is required'],
         trim: true,
         maxLength: 40,
         minLength: 3,
@@ -14,7 +66,7 @@ const startupUserSchema = new mongoose.Schema({
 
     email: {
         type: String,
-        required: true,
+        // required: true,
 
         validate: {
             validator: allValidator.isEmail,
@@ -24,7 +76,6 @@ const startupUserSchema = new mongoose.Schema({
     },
     secondaryEmail: {
         type: String,
-       
 
         validate: {
             validator: allValidator.isEmail,
@@ -35,12 +86,12 @@ const startupUserSchema = new mongoose.Schema({
 
     personalPhone: {
         type: String,
-        required: true,
+        // required: true,
         trim: true,
-        validate: {
-            validator: allValidator.isMobilePhone,
-            message: (props) => `${props.value} is not valid mobile number`,
-        },
+        // validate: {
+        //     validator: allValidator.isMobilePhone,
+        //     message: (props) => `${props.value} is not valid mobile number`,
+        // },
     },
     // professional Details------------------------------
 
@@ -78,7 +129,7 @@ const startupUserSchema = new mongoose.Schema({
 
     companyEmail: {
         type: String,
-        required: true,
+        // required: true,
         // unique: true,
         validate: {
             validator: allValidator.isEmail,
@@ -111,7 +162,7 @@ const startupUserSchema = new mongoose.Schema({
     domains: {
         type: [String],
     },
-    homePageImages:[String],
+    homePageImages: [String],
     socialLinks: {
         Github: String,
         Linkedin: String,
@@ -124,112 +175,110 @@ const startupUserSchema = new mongoose.Schema({
             type: String,
         },
 
-    drivingLicense: {
+        drivingLicense: {
             type: String,
         },
-    panCard: {
+        panCard: {
             type: String,
         },
-    adharCard: {
+        adharCard: {
             type: String,
         },
     },
 
     // ------------------------------------- verification info
 
-  
-    companyAddress :{   
-        place:String,
-        city:{
+    companyAddress: {
+        place: String,
+        city: {
             type: String,
-         
-            trim:true,
-            maxlength:50
+
+            trim: true,
+            maxlength: 50,
         },
-        state:{
-            type:String,
-            trim:true,
-            maxlength:50
+        state: {
+            type: String,
+            trim: true,
+            maxlength: 50,
         },
-        country:{
-            type:String,
-            trim:true,
+        country: {
+            type: String,
+            trim: true,
             // required:[true,"country in address should be required"],
-            maxlength:[50, 'No country name conatin more 50 words'],
+            maxlength: [50, 'No country name conatin more 50 words'],
         },
-        region:{
-            type:String,
-            trim:true,
+        region: {
+            type: String,
+            trim: true,
             // required:[true,"country in address should be required"],
-            maxlength:[50, 'No country name conatin more 50 words'],
+            maxlength: [50, 'No country name conatin more 50 words'],
         },
-        PIN:{
-            type:Number,
-          
+        PIN: {
+            type: Number,
+
             // validate :{
             //     validator: v =>{return allValidator.isPostalCode(new String(v))},
             //     message: 'PIN code is invalid',
             // }
         },
-        gstinNumber:{type:Number},
-        registered:{
-            type : Boolean,
-     
+        gstinNumber: { type: Number },
+        registered: {
+            type: Boolean,
         },
-        incubatedAt:{
-            type:String,
-            maxlength:60,
-            
+        incubatedAt: {
+            type: String,
+            maxlength: 60,
         },
-        registrationDate:{
+        registrationDate: {
             type: Date,
             // required: [function () {return this.registered},"register date is required"],
         },
-        registeredName:{type: String,},
-        
+        registeredName: { type: String },
     },
-    verificationRequest:Boolean,
-    verificationStatus:Boolean,
-    startupCIN:{
+    verificationRequest: Boolean,
+    verificationStatus: Boolean,
+    startupCIN: {
         type: String,
-        // required: [function () {return this.registered},"CIN no. is required"], 
+        // required: [function () {return this.registered},"CIN no. is required"],
         // validate:{
         //     validator: v =>{ return /^([LUu]{1})([0-9]{5})([A-Za-z]{2})([0-9]{4})([A-Za-z]{3})([0-9]{6})$/.test(v)},
         //     message: props => `${props.value} is not a CIN number`
         // },// CIN Validation /^([LUu]{1})([0-9]{5})([A-Za-z]{2})([0-9]{4})([A-Za-z]{3})([0-9]{6})$/
-        
     },
- 
-    companyDocs : {
-        addressProof:{ type:String },
-        gSTIN:{type:String},
-        cINDocument:{type:String},
-        companyPAN:{type:String},
-        others:{type:String}
+
+    companyDocs: {
+        addressProof: { type: String },
+        gSTIN: { type: String },
+        cINDocument: { type: String },
+        companyPAN: { type: String },
+        others: { type: String },
     },
-   
-    foundersDetail: { 
+
+    foundersDetail: {
         fullName: {
-            type:String,
-          
-            trim:true,
+            type: String,
+
+            trim: true,
             maxlength: 80,
-            minlength:[3,'Full name contain more than 3 letters'],
+            minlength: [3, 'Full name contain more than 3 letters'],
         },
-        linkedin:{
-            type:String,
-            trim:true,
-         
-            validate: { 
+        linkedin: {
+            type: String,
+            trim: true,
+
+            validate: {
                 validator: allValidator.isURL,
-                message: 'Must be a Valid linkedin URL' 
-              }
+                message: 'Must be a Valid linkedin URL',
+            },
         },
-        address:{
-            type:String,
-            trim:true,
-           
-        }
+        address: {
+            type: String,
+            trim: true,
+        },
+    },
+    talentRequestPaymentDetails: {
+        tier: { type: String },
+        transactionId: { type: [String, null] },
     },
 
     //

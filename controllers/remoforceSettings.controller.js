@@ -27,11 +27,10 @@ const updateRemoProfileSettings = async (req, res) => {
 
     // console.log(homePageImages);
     // const uploadedFilesUrls = [];
-    let profileUrl=''
+    let profileUrl = '';
 
     if (req.files.remoforceProfilePhoto.length) {
         profileUrl = await backBlazeSingle(req.files.remoforceProfilePhoto[0]);
-        
 
         obj.remoforceProfilePhoto = profileUrl;
     }
@@ -49,7 +48,11 @@ const updateRemoProfileSettings = async (req, res) => {
 
     try {
         if (email) {
-            const updateUser = await User.updateOne({ email }, {profilePhoto: profileUrl}, { upsert: true });
+            const updateUser = await User.updateOne(
+                { email },
+                { profilePhoto: profileUrl },
+                { upsert: true }
+            );
             const response = await Remoforce.updateOne({ email }, obj, { upsert: true });
             res.status(200).send(response);
         } else {
@@ -352,6 +355,8 @@ const getRemoforceProfile = async (req, res) => {
 // };
 // get a start ups data
 
+// talents section
+
 module.exports = {
     updateRemoProfileSettings,
     updateRemoSkillsSettings,
@@ -360,4 +365,5 @@ module.exports = {
     updateRemoProjectsSettings,
     getRemoforceProfile,
     updateRemoAccountSettings,
+   
 };

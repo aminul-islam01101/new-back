@@ -4,7 +4,7 @@ const authRouter = require('./auth.route');
 const startupRouter = require('./startup.route');
 const remoforceRouter = require('./remoforce.route');
 const jobRouter = require('./job.route');
-
+const talentRouter = require('./talent.route');
 
 const router = express.Router();
 // home route
@@ -17,6 +17,7 @@ router.use('/api/auth', authRouter);
 router.use('/api/startup', startupRouter);
 router.use('/api/remoforce', remoforceRouter);
 router.use('/api/job', jobRouter);  
+router.use('/api/talent', talentRouter );
 
 
 

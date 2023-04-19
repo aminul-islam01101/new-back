@@ -481,9 +481,13 @@ const closeUsersJob = async (req, res) => {
         { categoryName, 'jobs.jobId': id },
         { $set: { 'jobs.$.jobStatus': 'closed' } }
     ).exec();
-    const updateJob = await JobDataModel.findByIdAndUpdate(id, { jobStatus: 'closed' }, {new:true});
+    const updateJob = await JobDataModel.findByIdAndUpdate(
+        id,
+        { jobStatus: 'closed' },
+        { new: true }
+    );
     console.log(updateJob);
-    
+
     res.send(updateJob);
 
     //     // const user = await UserJobsModel.findOne({ email });
@@ -703,11 +707,9 @@ const getStatus = async (req, res) => {
 };
 const applicationRequests = async (req, res) => {
     const { id } = req.params;
-    
 
-console.log(id);
-// res.send('route ok')
-
+    console.log(id);
+    // res.send('route ok')
 
     try {
         // Find the job post by ID
@@ -717,7 +719,7 @@ console.log(id);
         }
 
         // Update the application request's status to "accepted"
-     
+
         res.send(job.applicationRequest);
     } catch (error) {
         console.error(error);

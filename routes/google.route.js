@@ -11,8 +11,6 @@ const {
 const router = express.Router();
 const CLIENT_URL = 'http://localhost:3000/';
 
-
-
 // router.get('/login/success', googleLoginSuccess);
 router.get('/logout', (req, res) => {
     req.logout();
@@ -23,24 +21,24 @@ const isAuthenticated = (req, res, next) => {
         return next();
     }
     // res.redirect('/api/auth/google');
-    next()
+    next();
 };
 
-router.get("/login/success", isAuthenticated, (req, res) => {
+router.get('/login/success', isAuthenticated, (req, res) => {
     console.log(req.user);
-    
+
     if (req.user) {
-      res.status(200).json({
-        success: true,
-        message: "successfull",
-        user: req.user,
-        //   cookies: req.cookies
-      });
+        res.status(200).json({
+            success: true,
+            message: 'successfull',
+            user: req.user,
+            //   cookies: req.cookies
+        });
     }
-  });
+});
 
 // Google Authentication Route
-router.get('/google', passport.authenticate('google', { scope: ['profile','email'] }));
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 // Google Authentication Callback Route
 router.get(
