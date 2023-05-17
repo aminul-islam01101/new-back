@@ -5,7 +5,7 @@ const allValidator = require('validator');
 const remoforceSchema = mongoose.Schema({
     fullName: {
         type: String,
-        required: [true, 'Please provide User name'],
+        // required: [true, 'Please provide User name'],
     },
 
     // email: {
@@ -22,20 +22,20 @@ const remoforceSchema = mongoose.Schema({
         type: String,
         // required: true,
         trim: true,
-        validate: {
-            validator: allValidator.isMobilePhone,
-            message: (props) => `${props.value} is not valid mobile number`,
-        },
+        // validate: {
+        //     validator: allValidator.isMobilePhone,
+        //     message: (props) => `${props.value} is not valid mobile number`,
+        // },
     },
     email: {
         type: String,
-        required: true,
+        // required: true,
         unique: true,
 
-        validate: {
-            validator: allValidator.isEmail,
-            message: (props) => `${props.value} is not valid i.e. not like example@example.com`,
-        },
+        // validate: {
+        //     validator: allValidator.isEmail,
+        //     message: (props) => `${props.value} is not valid i.e. not like example@example.com`,
+        // },
         trim: true,
     },
     // update profile settings---------------------
@@ -62,20 +62,20 @@ const remoforceSchema = mongoose.Schema({
         alternativeEmail: {
             type: String,
 
-            validate: {
-                validator: allValidator.isEmail,
-                message: (props) => `${props.value} is not valid i.e. not like example@example.com`,
-            },
-            trim: true,
+            // validate: {
+            //     validator: allValidator.isEmail,
+            //     message: (props) => `${props.value} is not valid i.e. not like example@example.com`,
+            // },
+            // trim: true,
         },
         alternativePhone: {
             type: String,
             // required: true,
-            trim: true,
-            validate: {
-                validator: allValidator.isMobilePhone,
-                message: (props) => `${props.value} is not valid mobile number`,
-            },
+            // trim: true,
+            // validate: {
+            //     validator: allValidator.isMobilePhone,
+            //     message: (props) => `${props.value} is not valid mobile number`,
+            // },
         },
     },
     socialLinks: {
@@ -96,11 +96,9 @@ const remoforceSchema = mongoose.Schema({
     selectedSkills: [
         {
             skillName: String,
-
             level: {
                 type: String,
-
-                enum: ['Beginner', 'Intermediate', 'Professional'],
+                // enum: ['Beginner', 'Intermediate', 'Professional'],
             },
         },
     ],
@@ -120,7 +118,7 @@ const remoforceSchema = mongoose.Schema({
         jobType: {
             type: String,
 
-            enum: ['Shadowing', 'Public Job', 'Private Job', 'Internship', 'Gigs', 'Contract'],
+            // enum: ['Shadowing', 'Public Job', 'Private Job', 'Internship', 'Gigs', 'Contract'],
         },
         jobIndustry: String,
         jobLevel: {
@@ -162,6 +160,17 @@ const remoforceSchema = mongoose.Schema({
             projectDescription: { type: String },
             projectLink: { type: String },
             projectType: { type: String },
+        },
+    ],
+    allRequests: [
+        {
+            startupsEmail: { type: String },
+            searchQuery: { type: {} },
+            interviewStatus: {
+                type: String,
+                enum: ['not requested', 'requested', 'accepted', 'rejected'],
+            },
+            jobId: { type: String },
         },
     ],
     createdOn: {
