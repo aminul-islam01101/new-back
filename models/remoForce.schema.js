@@ -165,11 +165,14 @@ const remoforceSchema = mongoose.Schema({
     allRequests: [
         {
             startupsEmail: { type: String },
+            startupName: { type: String },
+            startupIcon: { type: String },
             searchQuery: { type: {} },
             interviewStatus: {
                 type: String,
                 enum: ['not requested', 'requested', 'accepted', 'rejected'],
             },
+            interviewSchedule:{},
             jobId: { type: String },
         },
     ],

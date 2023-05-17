@@ -214,7 +214,7 @@ const getMatchedLastResults = async (req, res) => {
         if (startup.talentRequestHistory[tier][startup.talentRequestHistory[tier].length - 1]) {
             const lastSearchResult =
                 startup.talentRequestHistory[tier][startup.talentRequestHistory[tier].length - 1]
-                    .searchHistory[
+                    ?.searchHistory[
                     startup.talentRequestHistory[tier][
                         startup.talentRequestHistory[tier].length - 1
                     ].searchHistory.length - 1
@@ -242,7 +242,7 @@ const getMyRequests = async (req, res) => {
     try {
         // Find the job post by ID
         const startup = await Startup.findOne({ email });
-        console.log('--------', startup.talentRequestHistory);
+        // console.log('--------', startup.talentRequestHistory);
 
         if (startup.talentRequestHistory[tier][startup.talentRequestHistory[tier].length - 1]) {
             const myRequests =
@@ -258,7 +258,7 @@ const getMyRequests = async (req, res) => {
             //     (acc, talentHistory) => acc + talentHistory.requiredTalentsInHistory.length,
             //     0
             // );
-            console.log(totalMatch);
+            // console.log(totalMatch);
             const myRequestData = {
                 totalMatch,
                 myRequests,
@@ -317,33 +317,32 @@ const interviewRequests = async (req, res) => {
     // };
     const requestBody = req.body;
     console.log(requestBody.events);
-    
 
     try {
         // Find startup user
         const startup = await Startup.findOne({ email: requestBody.startupsEmail });
 
-     const eventsProp=   startup.talentRequestHistory[requestBody.tier]
+        const eventsProp = startup.talentRequestHistory[requestBody.tier]
             .find((searchHistory) => searchHistory.transactionId === requestBody.transactionId)
             .searchHistory.find(
                 (search) =>
                     search._id.toString() ===
                     mongoose.Types.ObjectId(requestBody.searchId).toString()
-            )
-            console.log({eventsProp});
-            
-            
-            if (!eventsProp.events.length) {
-                eventsProp.events = requestBody.events
-                console.log('helllllll');
-                
-                // eventsProp.events.push(requestBody.events)
-            }
-            else{
-                eventsProp.events.push(requestBody.events)
-                console.log('ooooooooooo');
-                
-            }
+            );
+        // console.log({eventsProp});
+
+        if (!eventsProp?.events?.length) {
+            eventsProp.events = requestBody.events;
+            console.log('helllllll');
+
+            // eventsProp.events.push(requestBody.events)
+        } else {
+            requestBody.events.forEach((event) => {
+                eventsProp.events.push(event);
+            });
+
+            console.log('ooooooooooo');
+        }
 
         startup.talentRequestHistory[requestBody.tier]
             .find((searchHistory) => searchHistory.transactionId === requestBody.transactionId)
@@ -369,13 +368,14 @@ const interviewRequests = async (req, res) => {
                     talent.interviewStatus = requestBody.interviewStatus;
                 }
             });
-        await startup.save();
 
         const remoObject = {
             startupsEmail: requestBody.startupsEmail,
             searchQuery: requestBody.searchQuery,
             interviewStatus: requestBody.interviewStatus,
             jobId: requestBody.searchId,
+            startupName: requestBody.startupName,
+            startupIcon: requestBody.startupIcon
         };
         const remoforce = await Remoforce.find({ email: { $in: requestBody.talentsEmail } });
 
@@ -394,9 +394,12 @@ const interviewRequests = async (req, res) => {
             return remo.save();
         });
 
+        // console.log(startup);
+
         await Promise.all(promises);
 
-        res.send(startup);
+        const result = await startup.save();
+        res.status(200).json({ message: 'Startup saved successfully' });
     } catch (error) {
         console.error(error);
         res.status(500).send('Server error');
@@ -405,12 +408,15 @@ const interviewRequests = async (req, res) => {
 // job request accept or reject
 
 const remoforceRequestAcceptance = async (req, res) => {
-    const requestBody = {
-        startupsEmail: 'webewe63fdf82@3mkz.com',
-        remoforceEmail: 'biyimo857r6@dicopto.com',
-        jobId: '64426c076f87207e8f0686b5',
-        interviewStatus: 'accepted',
-    };
+    // const requestBody = {
+    //     startupsEmail: 'webewe63fdf82@3mkz.com',
+    //     remoforceEmail: 'biyimo857r6@dicopto.com',
+    //     jobId: '64426c076f87207e8f0686b5',
+    //     interviewStatus: 'accepted',
+    // };
+    const requestBody = req.body;
+
+    console.log({ requestBody });
 
     try {
         // Find startup user
@@ -422,7 +428,7 @@ const remoforceRequestAcceptance = async (req, res) => {
                 (item) => item !== '_id'
             );
 
-            console.log('------------tier', tiers);
+            // console.log('------------tier', tiers);
             for (let i = 0; i < tiers.length; i += 1) {
                 const tier = startup.talentRequestHistory[tiers[i]];
 
@@ -431,9 +437,9 @@ const remoforceRequestAcceptance = async (req, res) => {
                         (history) =>
                             history._id.toString() === mongoose.Types.ObjectId(id).toString()
                     );
-                    console.log(
-                        `searching for id ${id} in tier ${i}, request ${j}, searchHistory ${searchHistory}`
-                    );
+                    // console.log(
+                    //     `searching for id ${id} in tier ${i}, request ${j}, searchHistory ${searchHistory}`
+                    // );
                     if (searchHistory) {
                         return searchHistory;
                     }
@@ -444,20 +450,117 @@ const remoforceRequestAcceptance = async (req, res) => {
 
         const searchHistory = getSearchHistoryById(requestBody.jobId);
 
-        searchHistory.requiredTalentsInHistory.find(
-            (talent) => talent.email === requestBody.remoforceEmail
-        ).interviewStatus = requestBody.interviewStatus;
+        const bookedEvent = searchHistory.events.find(
+            (event) => event.meetLink === requestBody.bookedSlot.selectedMeetLink
+        );
+
+        // console.log('------------', bookedEvent);
+
+        bookedEvent.slotStatus = requestBody.slotStatus;
+const talentData= searchHistory.requiredTalentsInHistory.find(
+    (talent) => talent.email === requestBody.remoforceEmail
+)
+talentData.interviewStatus = requestBody.interviewStatus;
+talentData.interviewSchedule = requestBody.bookedSlot;
         await startup.save();
 
-        remoforce.allRequests.find(
+        const remoforceRequest = remoforce.allRequests.find(
             (request) => request.jobId === requestBody.jobId
-        ).interviewStatus = requestBody.interviewStatus;
+        );
+        remoforceRequest.interviewStatus = requestBody.interviewStatus;
+        remoforceRequest.interviewSchedule = requestBody.bookedSlot;
         await remoforce.save();
 
-        res.send(remoforce);
+        res.status(200).json({ message: 'schedule booked' });
     } catch (error) {
         console.error(error);
         res.status(500).send('Server error');
+    }
+};
+const getAvailableSlots = async (req, res) => {
+    const { startupsEmail, jobId } = req.query;
+    console.log({ startupsEmail }, { jobId });
+
+    try {
+        const startup = await Startup.findOne({ startupsEmail });
+        const getSearchHistoryById = (id) => {
+            const tiers = Object.keys(startup.talentRequestHistory.toObject()).filter(
+                (item) => item !== '_id'
+            );
+
+            for (let i = 0; i < tiers.length; i += 1) {
+                const tier = startup.talentRequestHistory[tiers[i]];
+
+                for (let j = 0; j < tier.length; j += 1) {
+                    const searchHistory = tier[j].searchHistory.find(
+                        (history) =>
+                            history._id.toString() === mongoose.Types.ObjectId(id).toString()
+                    );
+
+                    if (searchHistory) {
+                        return searchHistory;
+                    }
+                }
+            }
+            return 'id not found'; // id not found
+        };
+
+        const searchHistory = getSearchHistoryById(jobId);
+        const availableSlots = searchHistory.events.filter(
+            (event) => event.slotStatus === 'available'
+        );
+        // console.log('---------', availableSlots);
+        res.send(availableSlots);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+const createdEvents = async (req, res) => {
+    const { email, jobId } = req.query;
+
+    try {
+        const startup = await Startup.findOne({ email });
+        const getSearchHistoryById = (id) => {
+            const tiers = Object.keys(startup.talentRequestHistory.toObject()).filter(
+                (item) => item !== '_id'
+            );
+
+            for (let i = 0; i < tiers.length; i += 1) {
+                const tier = startup.talentRequestHistory[tiers[i]];
+
+                for (let j = 0; j < tier.length; j += 1) {
+                    const searchHistory = tier[j].searchHistory.find(
+                        (history) =>
+                            history._id.toString() === mongoose.Types.ObjectId(id).toString()
+                    );
+
+                    if (searchHistory) {
+                        return searchHistory;
+                    }
+                }
+            }
+            return 'id not found'; // id not found
+        };
+
+        const searchHistory = getSearchHistoryById(jobId);
+        const { events } = searchHistory;
+        // console.log('---------', availableSlots);
+        res.send(events);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
+const  getStartupsDetail= async (req, res) => {
+    const { email } = req.query;
+   
+
+    try {
+        const startup = await Startup.findOne({ email});
+      
+        res.send(startup);
+    } catch (error) {
+        res.status(500).send(error.message);
     }
 };
 
@@ -467,4 +570,7 @@ module.exports = {
     getMyRequests,
     interviewRequests,
     remoforceRequestAcceptance,
+    getAvailableSlots,
+    createdEvents,
+    getStartupsDetail
 };
