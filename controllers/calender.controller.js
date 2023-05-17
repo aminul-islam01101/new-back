@@ -26,7 +26,6 @@ async function isAccessTokenExpired(accessToken) {
         const response = await axios.get(
             `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`
         );
-
         const expirationTime = Date.now() + response.data.expires_in * 1000;
         return Date.now() >= expirationTime;
     } catch (error) {

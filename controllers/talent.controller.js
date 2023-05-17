@@ -479,14 +479,19 @@ talentData.interviewSchedule = requestBody.bookedSlot;
 };
 const getAvailableSlots = async (req, res) => {
     const { startupsEmail, jobId } = req.query;
-    console.log({ startupsEmail }, { jobId });
+    // console.log({ startupsEmail }, { jobId });
 
     try {
-        const startup = await Startup.findOne({ startupsEmail });
+        const startup = await Startup.findOne({email: startupsEmail });
+     
+        
         const getSearchHistoryById = (id) => {
             const tiers = Object.keys(startup.talentRequestHistory.toObject()).filter(
                 (item) => item !== '_id'
             );
+           
+            console.log(mongoose.Types.ObjectId(id).toString());
+            
 
             for (let i = 0; i < tiers.length; i += 1) {
                 const tier = startup.talentRequestHistory[tiers[i]];
@@ -494,8 +499,11 @@ const getAvailableSlots = async (req, res) => {
                 for (let j = 0; j < tier.length; j += 1) {
                     const searchHistory = tier[j].searchHistory.find(
                         (history) =>
-                            history._id.toString() === mongoose.Types.ObjectId(id).toString()
+                            {console.log('-------------', history._id);
+                             return history._id.toString() === mongoose.Types.ObjectId(id).toString()}
                     );
+                 
+                    
 
                     if (searchHistory) {
                         return searchHistory;
@@ -509,6 +517,8 @@ const getAvailableSlots = async (req, res) => {
         const availableSlots = searchHistory.events.filter(
             (event) => event.slotStatus === 'available'
         );
+      
+        
         // console.log('---------', availableSlots);
         res.send(availableSlots);
     } catch (error) {
