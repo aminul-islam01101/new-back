@@ -11,6 +11,26 @@ const applicationRequestSchema = mongoose.Schema({
     applicationStatus: {
         type: String,
     },
+    startupsEmail:{
+        type: String,
+    },
+    jobId:{
+        type: String,
+    },
+    country:{
+        type: String,
+    },
+    title:{
+        type: String,
+    },
+    startupsProfilePhoto:{
+        type: String,
+    },
+    startupsName:{
+        type: String,
+    },
+    interviewSchedule:{}
+
 });
 // This is for jobs collection
 const jobPostData = mongoose.Schema({
@@ -88,4 +108,4 @@ const jobPostSchema = mongoose.Schema({
 const UserJobsModel = mongoose.model('userJobs', jobPostSchema);
 const JobDataModel = mongoose.model('job', jobPostData);
 
-module.exports = { UserJobsModel, jobPostData, JobDataModel };
+module.exports = { UserJobsModel, applicationRequestSchema, jobPostData, JobDataModel };

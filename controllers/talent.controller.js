@@ -316,7 +316,7 @@ const interviewRequests = async (req, res) => {
     //     transactionId: null,
     // };
     const requestBody = req.body;
-    console.log(requestBody.events);
+  
 
     try {
         // Find startup user
@@ -333,7 +333,7 @@ const interviewRequests = async (req, res) => {
 
         if (!eventsProp?.events?.length) {
             eventsProp.events = requestBody.events;
-            console.log('helllllll');
+       
 
             // eventsProp.events.push(requestBody.events)
         } else {
@@ -341,7 +341,7 @@ const interviewRequests = async (req, res) => {
                 eventsProp.events.push(event);
             });
 
-            console.log('ooooooooooo');
+           
         }
 
         startup.talentRequestHistory[requestBody.tier]
@@ -369,17 +369,23 @@ const interviewRequests = async (req, res) => {
                 }
             });
 
-        const remoObject = {
-            startupsEmail: requestBody.startupsEmail,
-            searchQuery: requestBody.searchQuery,
-            interviewStatus: requestBody.interviewStatus,
-            jobId: requestBody.searchId,
-            startupName: requestBody.startupName,
-            startupIcon: requestBody.startupIcon
-        };
         const remoforce = await Remoforce.find({ email: { $in: requestBody.talentsEmail } });
 
         const promises = remoforce.map((remo) => {
+            console.log('------------' ,remo.email);
+            
+            const remoObject = {
+                startupsEmail: requestBody.startupsEmail,
+                searchQuery: requestBody.searchQuery,
+                interviewStatus: requestBody.interviewStatus,
+                jobId: requestBody.searchId,
+                startupName: requestBody.startupName,
+                startupIcon: requestBody.startupIcon,
+                remoforceEmail:remo.email
+            };
+            console.log({remoObject});
+            
+            
             if (!remo.allRequests) {
                 remo.allRequests = [];
                 remo.allRequests.push(remoObject);
@@ -479,19 +485,14 @@ talentData.interviewSchedule = requestBody.bookedSlot;
 };
 const getAvailableSlots = async (req, res) => {
     const { startupsEmail, jobId } = req.query;
-    // console.log({ startupsEmail }, { jobId });
+    console.log({ startupsEmail }, { jobId });
 
     try {
-        const startup = await Startup.findOne({email: startupsEmail });
-     
-        
+        const startup = await Startup.findOne({ email: startupsEmail });
         const getSearchHistoryById = (id) => {
             const tiers = Object.keys(startup.talentRequestHistory.toObject()).filter(
                 (item) => item !== '_id'
             );
-           
-            console.log(mongoose.Types.ObjectId(id).toString());
-            
 
             for (let i = 0; i < tiers.length; i += 1) {
                 const tier = startup.talentRequestHistory[tiers[i]];
@@ -499,11 +500,8 @@ const getAvailableSlots = async (req, res) => {
                 for (let j = 0; j < tier.length; j += 1) {
                     const searchHistory = tier[j].searchHistory.find(
                         (history) =>
-                            {console.log('-------------', history._id);
-                             return history._id.toString() === mongoose.Types.ObjectId(id).toString()}
+                            history._id.toString() === mongoose.Types.ObjectId(id).toString()
                     );
-                 
-                    
 
                     if (searchHistory) {
                         return searchHistory;
@@ -517,8 +515,6 @@ const getAvailableSlots = async (req, res) => {
         const availableSlots = searchHistory.events.filter(
             (event) => event.slotStatus === 'available'
         );
-      
-        
         // console.log('---------', availableSlots);
         res.send(availableSlots);
     } catch (error) {
